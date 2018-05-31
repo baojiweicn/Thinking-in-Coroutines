@@ -1,0 +1,11 @@
+aiofiles==0.3.2
+asyncio-redis==0.14.3
+gevent==1.2.2
+gevent-websocket==0.10.1
+greenlet==0.4.13
+gunicorn==19.7.1
+httptools==0.0.11
+sanic==0.7.0
+ujson==1.35
+uvloop==0.9.1
+websockets==4.0.1

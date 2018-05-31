@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style type="text/css">
+            body {padding: 0; margin: 0;}
+            #chat {
+                height: calc(100vh - 71px);
+                overflow-y: scroll;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            #chat a {
+                color: black;
+                font-weight: bold;
+                text-decoration: none;
+            }
+            .message-form {
+                height: 20px;
+                padding: 10px;
+            }
+            .message-form input {
+                height: 20px;
+            }
+            .message-form input.message-content {
+                width: calc(100% - 60px);
+            }
+        </style>
+        <script type="text/javascript">
+            function appendMessage(sender, text) {
+                if (text.length < 1) return;
+                var chatContainer = document.getElementById('chat')
+                var messageElement = document.createElement('div')
+                messageElement.innerHTML = '<a href="#" onclick="showProfile(this, \'' + sender + '\'); return false">' + sender + '</a>'
+                                         + '<div>' + text + '</div>'
+
+                chatContainer.appendChild(messageElement)
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            window.onload = function() {
+                socket = new WebSocket(location.protocol.replace('http', 'ws') + '//' + location.host + '/chat');
+                this.socket.onmessage = function(event) {
+                    var data = JSON.parse(event.data)
+                    appendMessage(data.user, data.message)
+                }
+            }
+            function send(message) {
+                socket.send(JSON.stringify({
+                    message: message
+                }))
+            }
+
+        </script>
+    </head>
+    <body>
+        <div id="chat">
+
+        </div>
+        <form class="message-form" onsubmit="send(this.content.value); this.content.value = ''; return false">
+            <input type="text" name="content" class="message-content">
+            <input type="submit" value="보내기">
+        </form>
+    </body>
+</html>
