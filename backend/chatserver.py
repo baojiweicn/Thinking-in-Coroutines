@@ -7,10 +7,10 @@
 
 import ujson
 import asyncio
+import aredis
 import logging
 import uuid
 
-import asyncio_redis
 from sanic import Sanic, response
 
 app = Sanic(__name__)
@@ -21,7 +21,7 @@ class Redis:
 
     async def get_redis_pool(self):
         if not self._pool:
-            self._pool = await asyncio_redis.Pool.create(host='localhost', port=6379, poolsize=500)
+            self._pool = aredis.StrictRedis(host='0.0.0.0', port=6379)
         return self._pool
 
 redis = Redis()
@@ -30,21 +30,29 @@ redis = Redis()
 async def before_srver_start(app, loop):
     app.broker = await redis.get_redis_pool()
 
-@app.middleware('response')
-async def cors_res(request, response):
-    request.app.broker.close()
+@app.route("/")
+async def test(request):
+    return "hello"
 
 @app.route("/index")
 async def index(request):
     return response.redirect("index.html")
 
 async def subscribe(request,ws):
-    subscriber = await request.app.broker.start_subscribe()
-    await subscriber.subscribe(['room1'])
+    subscriber = request.app.broker.pubsub()
+    await subscriber.subscribe('room1')
+    msg = await subscriber.get_message()
     while True:
-        msg = await subscriber.next_published()
+        msg = await subscriber.get_message()
         logger.info(msg)
-        await ws.send(msg.value)
+        data = msg['data']
+        try:
+            data = data.decode()
+        except Exception:
+            pass
+
+        asyncio.sleep(0.01)
+        await ws.send(data)
 
 async def publish(request,ws):
     userid = uuid.uuid4()
@@ -61,7 +69,7 @@ async def chat(request, ws):
     await asyncio.gather(publish(request,ws),subscribe(request,ws))
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
 #################
 #   old code    #

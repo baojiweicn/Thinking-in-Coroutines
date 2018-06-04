@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Video Streaming Demonstration</title>
+  </head>
+<body>
+<h1>Video Streaming Demonstration</h1>
+<img src="" id="image_container">
+	<script type="text/javascript">
+        var image_container = document.getElementById('image_container')
+        function fileOrBlobToDataURL(obj){
+            var a = new FileReader();
+            a.readAsDataURL(obj);
+            a.onload = function (e){
+                image_container.src = e.target.result;
+            };
+        };
+        window.onload = function() {
+                socket = new WebSocket(location.protocol.replace('http', 'ws') + '//' + location.host + '/chat');
+                this.socket.onmessage = function(event) {
+                    var data = event.data
+                    fileOrBlobToDataURL(data)
+                    console.log(data)
+                }
+            }
+
+
+
+	</script>
+</body>
+</html>
